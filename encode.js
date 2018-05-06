@@ -1,31 +1,33 @@
-// var Int64BE = require("int64-buffer").Int64BE;
+var Uint64BE = require("int64-buffer").Uint64BE;
 
 module.exports = encode
 
-var MSB = 0x80
-  , REST = 0x7F
-  , MSBALL = ~REST
-  , INT = Math.pow(2, 31)
+// PutUvarint encodes a uint64 into buf and returns the number of bytes written.
+// If the buffer is too small, PutUvarint will panic.
+function PutUvarint(buf, x) {
+  var i = 0
+  for (;x.toNumber() >= 0x80;) {
+    buf[i] = x.toBuffer()[7] | 0x80;
+    x = new Uint64BE(x >>= 7)
+    i++
+  }
+  buf[i] = x.toBuffer()[7]
+  return i + 1
+}
+
+// PutVarint encodes an int64 into buf and returns the number of bytes written.
+function PutVarint(buf, x) {
+  if (x < 0) {
+    x = x ^ x
+  }
+  var ux =  new Uint64BE(x << 1)
+  return PutUvarint(buf, ux)
+}
 
 function encode(num, out, offset) {
   out = out || []
   offset = offset || 0
   var oldOffset = offset
-
-  // var bigInt = new Int64BE(num << 1)
-  // var buf = bigInt.toBuffer()
-  // offset += buf.length
-  while(num >= INT) {
-    out[offset++] = (num & 0xFF) | MSB
-    num /= 128
-  }
-  while(num & MSBALL) {
-    out[offset++] = (num & 0xFF) | MSB
-    num >>>= 7
-  }
-  out[offset] = num << 1 | 0
-  
-  encode.bytes = offset - oldOffset + 1
-  
+  encode.bytes = PutVarint(out, num);
   return out
 }
