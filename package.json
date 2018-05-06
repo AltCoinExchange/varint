@@ -35,6 +35,9 @@
     "url": "https://github.com/chrisdickinson/varint/issues"
   },
   "description": "protobuf-style varint bytes - use msb to create integer values of varying sizes",
+  "dependencies": {
+    "int64-buffer": "^0.1.10",
+  },
   "devDependencies": {
     "tape": "~2.12.3"
   },
